@@ -15,7 +15,25 @@ export function useGroupings(date: Date) {
       const response = await fetch("https://opensheet.elk.sh/1KWCELv96If20u8H5_3b4pR0fo4Z8Dd61uxFTCuVas48/solutions-tab")
       const data = (await response.json()) as SheetRow[]
       const dateString = date.toISOString().split('T')[0]
-      const rowsForDate = data.filter(row => row.date.trim() === dateString)
+      let rowsForDate = data.filter(row => row.date.trim() === dateString)
+
+      // If no game for today, pick a random game
+      if (rowsForDate.length !== 4) {
+        // Group all rows by date
+        const groupedByDate: { [key: string]: SheetRow[] } = {}
+        data.forEach(row => {
+          const d = row.date.trim()
+          if (!groupedByDate[d]) groupedByDate[d] = []
+          groupedByDate[d].push(row)
+        })
+        // Find all dates with 4 rows (valid games)
+        const validDates = Object.keys(groupedByDate).filter(d => groupedByDate[d].length === 4)
+        if (validDates.length > 0) {
+          const randomDate = validDates[Math.floor(Math.random() * validDates.length)]
+          rowsForDate = groupedByDate[randomDate]
+        }
+      }
+
       if (rowsForDate.length === 4) {
         setGroupings(
           rowsForDate.map(row => ({
