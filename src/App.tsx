@@ -45,8 +45,8 @@ function getDateArgentina() {
 
 export default function App() {
 
-
-  const groupings = useGroupings(getDateArgentina())
+  const currentDate = getDateArgentina()
+  const groupings = useGroupings(currentDate)
 
   const { label, active, triggerAlert } = useAlertState()
 
@@ -66,7 +66,8 @@ export default function App() {
   } = useGameState({
     groupings: groupings ?? emptyGrouping,
     shuffleInitial: true,
-    oneAwayFn: () => triggerAlert("Estás a una palabra...", 500, 2_000)
+    oneAwayFn: () => triggerAlert("Estás a una palabra...", 500, 2_000),
+    gameDate: currentDate
   })
 
   const noOfAttemptsRemainingDelayed = useDelay(noOfAttemptsRemaining, 1_000)
@@ -146,7 +147,7 @@ export default function App() {
             Creá cuatro grupos de cuatro palabras!
           </span>
           {/* <div className='flex w-full justify-center -translate-x-2'> */}
-          <img src={Mate} className='w-6' />
+          <img src={Mate} className='w-6' alt="Mate cup" />
           {/* </div> */}
           <Alert label={label} visible={active} />
 

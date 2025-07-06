@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Position, TileData, TileTransitionStatus } from "./Tile"
 import { Solution } from "./components/SolutionRow"
 import { shuffleSubsetInplace } from "./arrayUtil"
+import { saveGameState, loadGameState, getGameDateString, SavedGameState } from "./gameStorage"
 
 export type Attempt = {
   correct: boolean
@@ -17,15 +18,37 @@ export type Grouping = {
 
 const orderedPositions = createOrderedPositions()
 
-export function useGameState({ groupings, shuffleInitial, oneAwayFn }: { groupings: Grouping[], shuffleInitial: boolean, oneAwayFn: () => void }) {
+interface UseGameStateProps {
+  groupings: Grouping[]
+  shuffleInitial: boolean
+  oneAwayFn: () => void
+  gameDate: Date
+}
 
-  const [data, setData] = useState<{ word: string, status: TileTransitionStatus }[]>(() => [])
+export function useGameState({ groupings, shuffleInitial, oneAwayFn, gameDate }: UseGameStateProps) {
+
+  const currentDateString = getGameDateString(gameDate);
+  
+  // Try to load saved state
+  const savedState = loadGameState();
+  const isValidSavedState = savedState && savedState.date === currentDateString;
+
+  const [data, setData] = useState<{ word: string, status: TileTransitionStatus }[]>(() => 
+    isValidSavedState ? savedState.data : []
+  )
   const wordList = data.flatMap(d => d.word)
-  const [gameEnded, setGameEnded] = useState(false)
-  const [gameWon, setGameWon] = useState(false)
-  const [positions, setPositions] = useState<Position[]>(() => orderedPositions)
-  const [selectedWords, setSelectedWords] = useState<string[]>(() => [])
-  const [attempts, setAttempts] = useState<Attempt[]>(() => [])
+  const [gameEnded, setGameEnded] = useState(isValidSavedState ? savedState.gameEnded : false)
+  const [gameWon, setGameWon] = useState(isValidSavedState ? savedState.gameWon : false)
+  const [positions, setPositions] = useState<Position[]>(() => 
+    isValidSavedState ? savedState.positions : orderedPositions
+  )
+  const [selectedWords, setSelectedWords] = useState<string[]>(() => 
+    isValidSavedState ? savedState.selectedWords : []
+  )
+  const [attempts, setAttempts] = useState<Attempt[]>(() => 
+    isValidSavedState ? savedState.attempts : []
+  )
+  const [autoSolveEnded, setAutoSolveEnded] = useState(isValidSavedState ? savedState.autoSolveEnded : false)
 
   const words = data.map(d => d.word)
 
@@ -40,10 +63,30 @@ export function useGameState({ groupings, shuffleInitial, oneAwayFn }: { groupin
   const noOfSolutions = solutions.length
 
   useEffect(() => {
-    const words = groupings.flatMap(grouping => grouping.words)
-    const shuffledWords = shuffleInitial ? shuffleSubsetInplace([...words], words.map((_, index) => index)) : [...words]
-    setData(() => [...shuffledWords].map(word => ({ word: word, status: undefined })))
-  }, [groupings])
+    // Only initialize data if we don't have a valid saved state
+    if (!isValidSavedState && groupings.length > 0) {
+      const words = groupings.flatMap(grouping => grouping.words)
+      const shuffledWords = shuffleInitial ? shuffleSubsetInplace([...words], words.map((_, index) => index)) : [...words]
+      setData(() => [...shuffledWords].map(word => ({ word: word, status: undefined })))
+    }
+  }, [groupings, shuffleInitial, isValidSavedState])
+
+  // Save game state whenever it changes
+  useEffect(() => {
+    if (data.length > 0) { // Only save if game has been initialized
+      const gameState: SavedGameState = {
+        date: currentDateString,
+        data,
+        selectedWords,
+        attempts,
+        positions,
+        gameEnded,
+        gameWon,
+        autoSolveEnded
+      };
+      saveGameState(gameState);
+    }
+  }, [currentDateString, data, selectedWords, attempts, positions, gameEnded, gameWon, autoSolveEnded])
 
   useEffect(() => {
     if (noOfAttemptsRemaining === 0 || solutions.length === 4) {
@@ -175,8 +218,6 @@ export function useGameState({ groupings, shuffleInitial, oneAwayFn }: { groupin
     return groupings.filter(grouping => !solutions.includes(grouping))
   }
 
-  const [autoSolveEnded, setAutoSolveEnded] = useState(false)
-
   async function autoSolve() {
 
     const unsolvedGroupings = findUnsolvedGroupings()
@@ -192,10 +233,14 @@ export function useGameState({ groupings, shuffleInitial, oneAwayFn }: { groupin
   }
 
   function wordToDifficulty(word: string): number {
-    return groupings.filter(grouping => grouping.words.includes(word)).at(0)!.difficulty
+    const grouping = groupings.find(grouping => grouping.words.includes(word));
+    return grouping?.difficulty || 1; // Default to difficulty 1 if not found
   }
 
   function getEmojiRepresentation() {
+    // Only process attempts if groupings are loaded
+    if (groupings.length === 0) return [];
+    
     const userAttempts = attempts.filter(attempt => attempt.by === 'user')
     return userAttempts.map(attempt =>
       attempt.words.map(word => difficultyToEmoji(wordToDifficulty(word)))
@@ -251,15 +296,18 @@ function createOrderedPositions() {
 }
 
 function areSameGroup(words: string[], groupings: Grouping[]): string | undefined {
+  if (groupings.length === 0) return undefined;
+  
   const groups = words.map(word => findGroup(word, groupings))
-  if (new Set(groups).size === 1) {
+  if (new Set(groups).size === 1 && groups[0] !== '') {
     return groups[0]
   }
   return undefined
 }
 
 function findGroup(word: string, groupings: Grouping[]) {
-  return groupings.find(grouping => grouping.words.includes(word))!.group
+  const grouping = groupings.find(grouping => grouping.words.includes(word));
+  return grouping?.group || '';
 }
 
 function difficultyToEmoji(difficulty: number): string {
@@ -276,6 +324,8 @@ function difficultyToEmoji(difficulty: number): string {
 }
 
 function oneAway(words: string[], groupings: Grouping[]): boolean {
+  if (groupings.length === 0) return false;
+  
   const groups = words.map(word => findGroup(word, groupings))
   const groupSet = new Set(groups)
   return groupSet.size === 2 && Array.from(groupSet.values()).every(word => {
