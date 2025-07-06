@@ -29,7 +29,12 @@ export function useGroupings(date: Date) {
         // Find all dates with 4 rows (valid games)
         const validDates = Object.keys(groupedByDate).filter(d => groupedByDate[d].length === 4)
         if (validDates.length > 0) {
-          const randomDate = validDates[Math.floor(Math.random() * validDates.length)]
+          // Use current date as seed for deterministic "random" selection
+          const epochMs = new Date("February 14, 2022 00:00:00").valueOf();
+          const now = Date.now();
+          const msInDay = 86400000;
+          const index = Math.floor((now - epochMs) / msInDay);
+          const randomDate = validDates[index % validDates.length]
           rowsForDate = groupedByDate[randomDate]
         }
       }
