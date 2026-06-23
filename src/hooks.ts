@@ -4,8 +4,9 @@ export function useDelay<T>(value: T, timeout: number): T {
   const [delayedValue, setDelayedValue] = useState<T>(value)
 
   useEffect(() => {
-    setTimeout(() => setDelayedValue(value), timeout)
-  }, [value, timeout])
+    setTimeout(() => setDelayedValue(value), timeout);
+    // eslint-disable-next-line
+  }, [value])
 
   return delayedValue
 }
@@ -22,7 +23,8 @@ export function useTime(updateIntervalMS: number) {
     return () => {
       clearInterval(intervalId)
     };
-  }, [updateIntervalMS])
+    // eslint-disable-next-line
+  }, [])
 
   return time
 }
@@ -35,7 +37,8 @@ export function useContainer() {
   useEffect(() => {
     setWidth(ref.current?.offsetWidth)
     setHeight(ref.current?.offsetHeight)
-  }, [ref])
+    // eslint-disable-next-line
+  }, [ref, ref.current])
 
   return {
     ref: ref,
