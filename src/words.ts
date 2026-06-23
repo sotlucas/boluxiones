@@ -12,7 +12,9 @@ export function useGroupings(date: Date) {
   async function loadWords() {
 
     try {
-      const response = await fetch("https://opensheet.elk.sh/1KWCELv96If20u8H5_3b4pR0fo4Z8Dd61uxFTCuVas48/solutions-tab")
+      const response = await fetch(
+        "https://opensheet.elk.sh/1PtxzNqyfDZCJA3pWX-AomyDgjf6lcYmMP387dTyzf9E/solutions-tab",
+      );
       const data = (await response.json()) as SheetRow[]
       const dateString = date.toISOString().split('T')[0]
       let rowsForDate = data.filter(row => row.date.trim() === dateString)
