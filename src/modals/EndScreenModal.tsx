@@ -56,15 +56,6 @@ export const EndScreenModal = ({ isOpen, handleClose, emojiRepresentation, gameW
   )
 }
 
-function ShareButton({ onClick }: { onClick: () => void }) {
-  return <button
-    type="button"
-    className="mt-2 w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-[#6CACE4] text-base font-medium text-white hover:bg-[#6CACE4] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#6CACE4] sm:text-sm"
-    onClick={onClick}
-  >
-    compartir
-  </button>
-}
 function EmojiGrid({ emojiRepresentation }: { emojiRepresentation: EmojiRepresentation }) {
   return <div className='flex flex-col items-center text-2xl'>
     {emojiRepresentation.map(row => <div className='flex'>

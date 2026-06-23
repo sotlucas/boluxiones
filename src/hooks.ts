@@ -5,7 +5,7 @@ export function useDelay<T>(value: T, timeout: number): T {
 
   useEffect(() => {
     setTimeout(() => setDelayedValue(value), timeout)
-  }, [value])
+  }, [value, timeout])
 
   return delayedValue
 }
@@ -22,7 +22,7 @@ export function useTime(updateIntervalMS: number) {
     return () => {
       clearInterval(intervalId)
     };
-  }, [])
+  }, [updateIntervalMS])
 
   return time
 }
@@ -35,7 +35,7 @@ export function useContainer() {
   useEffect(() => {
     setWidth(ref.current?.offsetWidth)
     setHeight(ref.current?.offsetHeight)
-  }, [ref, ref.current])
+  }, [ref])
 
   return {
     ref: ref,

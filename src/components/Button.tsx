@@ -10,7 +10,7 @@ export function Button({ label, onSubmit, active, filled, timeoutAfterClick, onC
     if (justClicked) {
       setTimeout(() => setJustClicked(false), timeoutAfterClick)
     }
-  }, [justClicked])
+  }, [justClicked, timeoutAfterClick])
 
   function onClick() {
     if (!active && onClickInactive) {

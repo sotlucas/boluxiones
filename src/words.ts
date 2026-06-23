@@ -7,6 +7,7 @@ export function useGroupings(date: Date) {
 
   useEffect(() => {
     loadWords()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function loadWords() {

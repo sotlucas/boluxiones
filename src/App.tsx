@@ -59,7 +59,6 @@ export default function App() {
     canSubmit,
     solutions,
     noOfAttemptsRemaining,
-    gameEnded,
     gameWon,
     autoSolveEnded,
     emojiRepresentation
@@ -146,7 +145,7 @@ export default function App() {
             Creá cuatro grupos de cuatro palabras!
           </span>
           {/* <div className='flex w-full justify-center -translate-x-2'> */}
-          <img src={Mate} className='w-6' />
+          <img src={Mate} className='w-6' alt="mate" />
           {/* </div> */}
           <Alert label={label} visible={active} />
 

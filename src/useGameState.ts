@@ -43,7 +43,7 @@ export function useGameState({ groupings, shuffleInitial, oneAwayFn }: { groupin
     const words = groupings.flatMap(grouping => grouping.words)
     const shuffledWords = shuffleInitial ? shuffleSubsetInplace([...words], words.map((_, index) => index)) : [...words]
     setData(() => [...shuffledWords].map(word => ({ word: word, status: undefined })))
-  }, [groupings])
+  }, [groupings, shuffleInitial])
 
   useEffect(() => {
     if (noOfAttemptsRemaining === 0 || solutions.length === 4) {
@@ -69,6 +69,7 @@ export function useGameState({ groupings, shuffleInitial, oneAwayFn }: { groupin
       }
       catch {}
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameEnded])
 
   function addAttempt(attempt: Attempt) {
@@ -131,6 +132,7 @@ export function useGameState({ groupings, shuffleInitial, oneAwayFn }: { groupin
       setTimeout(() => setTileStatus(lastAttempt.words[2], "wrong"), 1_000)
       setTimeout(() => setTileStatus(lastAttempt.words[3], "wrong"), 1_000)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attempts])
 
   function wordToPosition(positions: Position[], srcWord: string, dstPosition: Position): Position[] {

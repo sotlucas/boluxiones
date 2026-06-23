@@ -41,7 +41,7 @@ export function Tile({ setTileHeight, tileData, containerWidth }: { setTileHeigh
     if (tileHeight) {
       setTileHeight(tileHeight)
     }
-  }, [tileHeight])
+  }, [tileHeight, setTileHeight])
 
   const onClick = () => {
     setSelected(!selected)
